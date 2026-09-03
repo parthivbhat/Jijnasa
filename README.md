@@ -1,4 +1,4 @@
-# 🕉️ Jijnasa
+# Jijnasa
 
 > **A personal technology intelligence and learning agent.**
 
@@ -23,7 +23,7 @@ The goal is to turn information into useful personal knowledge instead of simply
 Jijnasa has two major workflows:
 
 ```text
-                    🕉️ JIJNASA
+                     JIJNASA
                          │
              ┌───────────┴───────────┐
              │                       │
