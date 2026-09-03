@@ -1,0 +1,9 @@
+{
+  "news": {
+    "TechCrunch": "https://techcrunch.com/feed/",
+    "Ars Technica": "https://feeds.arstechnica.com/arstechnica/index",
+    "MIT News": "https://news.mit.edu/rss/feed",
+    "Hacker News": "https://news.ycombinator.com/rss",
+    "IEEE Spectrum": "https://spectrum.ieee.org/feeds/feed.rss"
+  }
+}
