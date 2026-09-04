@@ -3,7 +3,7 @@ from app.news.processor import process_articles
 from app.news.deduplicator import deduplicate_articles
 from app.news.analyzer import analyze_article
 from app.news.deep_analyzer import deep_analyze_articles
-from app.memory.obsidian import save_news_article
+from app.content.x_generator import generate_news_x_content
 
 
 # Safety limits while developing.
@@ -87,28 +87,6 @@ def filter_important(articles: list[dict]) -> list[dict]:
     ]
 
 
-def save_to_obsidian(articles: list[dict]) -> list[str]:
-    """Save final intelligence articles to Obsidian."""
-
-    saved_paths = []
-
-    for article in articles:
-        try:
-            path = save_news_article(article)
-            saved_paths.append(str(path))
-
-            print(f"Saved: {path}")
-
-        except Exception as error:
-            print(
-                f"Failed to save: "
-                f"{article.get('title', '')}"
-            )
-            print(f"Reason: {error}")
-
-    return saved_paths
-
-
 def run_news_pipeline() -> dict:
     """Run the complete Jijnasa news intelligence pipeline."""
 
@@ -153,14 +131,14 @@ def run_news_pipeline() -> dict:
         flush=True,
     )
 
-    print("Saving to Obsidian...", flush=True)
-
-    saved_paths = save_to_obsidian(deep_articles)
-
-    print(
-        f"Saved to Obsidian: {len(saved_paths)}",
-        flush=True,
+    print("Generating X content...", flush=True)
+    x_content = generate_news_x_content(
+        deep_articles,
+        collected=len(unique_articles),
+        candidates=len(candidates),
+        analyzed=len(analyzed_articles),
     )
+    print("X content generated.", flush=True)
 
     return {
         "collected": len(unique_articles),
@@ -168,7 +146,6 @@ def run_news_pipeline() -> dict:
         "analyzed": len(analyzed_articles),
         "important": len(important_articles),
         "deep_analyzed": len(deep_articles),
-        "saved": len(saved_paths),
-        "saved_paths": saved_paths,
+        "x_content": x_content,
         "articles": deep_articles,
     }

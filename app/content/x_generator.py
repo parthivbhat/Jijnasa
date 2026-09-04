@@ -1,12 +1,10 @@
 import json
 import re
-
 from app.llm.groq import ask_groq
 
 
 def parse_json_response(response: str) -> dict:
     """Extract JSON from an LLM response."""
-
     response = response.strip()
 
     try:
@@ -39,43 +37,47 @@ def parse_json_response(response: str) -> dict:
     return {}
 
 
-def generate_x_content(article: dict) -> dict:
-    """Generate an X post and thread from Jijnasa intelligence."""
+def generate_news_x_content(
+    articles: list[dict],
+    collected: int = 0,
+    candidates: int = 0,
+    analyzed: int = 0,
+) -> dict:
+    """Generate one X post and a thread from the day's important news."""
 
-    title = article.get("title", "")
-    source = article.get("source", "")
-    summary = article.get("summary", "")
-    why_it_matters = article.get("why_it_matters", "")
-    industry_impact = article.get("industry_impact", "")
-    key_takeaway = article.get("key_takeaway", "")
-    x_angle = article.get("x_angle", "")
+    news_blocks = []
+
+    for i, article in enumerate(articles, 1):
+        deep = article.get("deep_analysis", {})
+
+        news_blocks.append(
+            f"""
+STORY {i}
+TITLE: {article.get("title", "")}
+SOURCE: {article.get("source", "")}
+SUMMARY: {article.get("summary", "")}
+WHY IT MATTERS: {article.get("why_it_matters", "")}
+INDUSTRY IMPACT: {article.get("industry_impact", "")}
+KEY TAKEAWAY: {article.get("key_takeaway", "")}
+X ANGLE: {article.get("x_angle", "")}
+DEEP ANALYSIS: {deep}
+"""
+        )
 
     prompt = f"""
-You are Jijnasa's X content writer.
+You are Jijnasa's technology news X content writer.
 
-Create high-quality technology content for X (Twitter) based ONLY
-on the supplied intelligence.
+Create ONE main X post and ONE concise thread from the important
+technology news analyzed today.
 
-TITLE:
-{title}
+PIPELINE STATS:
+Collected: {collected}
+Shortlisted: {candidates}
+Groq analyzed: {analyzed}
+Important stories: {len(articles)}
 
-SOURCE:
-{source}
-
-SUMMARY:
-{summary}
-
-WHY IT MATTERS:
-{why_it_matters}
-
-INDUSTRY IMPACT:
-{industry_impact}
-
-KEY TAKEAWAY:
-{key_takeaway}
-
-X ANGLE:
-{x_angle}
+NEWS:
+{"".join(news_blocks)}
 
 Return ONLY valid JSON:
 
@@ -88,63 +90,54 @@ Return ONLY valid JSON:
   ]
 }}
 
-Rules:
-
-- post must be concise and engaging.
-- Keep post under 280 characters.
-- thread must contain 3 to 5 posts.
-- Each thread post should be useful on its own.
-- Start the thread with a strong hook.
-- Explain what happened and why it matters.
-- Prefer facts over hype.
+MAIN POST RULES:
+- Tell the reader what the actual news is.
+- Mention the most important 2-3 stories.
+- Use plain language.
+- Include useful context, not just headlines.
+- Mention Jijnasa's pipeline stats naturally if they fit.
+- Keep it under 280 characters.
+- Use emojis sparingly.
+- Use at most 2 hashtags.
 - Do not invent facts.
-- Do not make unsupported claims.
-- Do not use excessive hashtags.
-- Use at most 2 relevant hashtags.
-- Make the writing natural, like a technology builder/intelligence analyst.
+
+THREAD RULES:
+- Create one thread post for each important story.
+- Number posts dynamically, for example 1/3, 2/3, 3/3.
+- Each post should explain what happened and why it matters.
+- Keep each post concise.
+- Use plain language.
+- Start each story with a useful hook.
+- Do not invent facts.
+- Do not repeat the main post unnecessarily.
+- No excessive hashtags.
+
+IMPORTANT:
+- Prefer factual reporting over hype.
+- Do not claim certainty where the source does not provide it.
+- Do not invent sources, statistics, quotes, or events.
 """
 
+
     try:
-        raw_response = ask_groq(prompt)
-        result = parse_json_response(raw_response)
+        print("Generating news X content...", flush=True)
+
+        response = ask_groq(prompt)
+        result = parse_json_response(response)
 
         if result:
-            return {
-                **article,
-                "x_content": result,
-            }
+            print("News X content generated.", flush=True)
+            return result
+
+        print("Could not parse news X content.", flush=True)
 
     except Exception as error:
-        print(f"X generation failed: {error}", flush=True)
+        print(
+            f"News X generation failed: {error}",
+            flush=True,
+        )
 
     return {
-        **article,
-        "x_content": {
-            "post": "",
-            "thread": [],
-        },
+        "post": "",
+        "thread": [],
     }
-
-
-def generate_x_contents(articles: list[dict]) -> list[dict]:
-    """Generate X content for multiple articles."""
-
-    results = []
-    total = len(articles)
-
-    for i, article in enumerate(articles, 1):
-        print(
-            f"Generating X content {i}/{total}: "
-            f"{article.get('title', '')}",
-            flush=True,
-        )
-
-        result = generate_x_content(article)
-        results.append(result)
-
-        print(
-            f"Finished X content {i}/{total}",
-            flush=True,
-        )
-
-    return results

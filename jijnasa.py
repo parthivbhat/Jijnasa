@@ -174,7 +174,13 @@ def interactive_mode():
             print("Analyzed:", result["analyzed"])
             print("Important:", result["important"])
             print("Deep analyzed:", result["deep_analyzed"])
-            print("Saved:", result["saved"])
+            x_content = result.get("x_content", {})
+            print("🐦 X POST:")
+            print(x_content.get("post", ""))
+            print()
+            print("🧵 X THREAD:")
+            for i, post in enumerate(x_content.get("thread", []), 1):
+                print(f"{i}. {post}")
             print()
 
             continue
